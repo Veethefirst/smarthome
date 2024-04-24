@@ -115,15 +115,25 @@ public class TemperatureServer {
         }
 
         @Override
-        public void streamTemperature(TemperatureRequest request, StreamObserver<TemperatureData> responseObserver){
-            for (Temperature data: temperatureList){
+        public void streamTemperature(TemperatureRequest request, StreamObserver<TemperatureData> responseObserver) {
+            for (Temperature data : temperatureList) {
                 TemperatureData result = TemperatureData.newBuilder()
                         .setTemperature(data.getTemperature())
                         .setSensorId(data.getSensorId())
                         .setTimestamp(data.getTimestamp())
                         .build();
+                // Stream temperature data
                 responseObserver.onNext(result);
+
+                // Sleep for 2 seconds
+                try {
+                    Thread.sleep(2000); // Sleep for 2 seconds (2000 milliseconds)
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
+                }
             }
+            // Notify completion after streaming all data
             responseObserver.onCompleted();
         }
     }

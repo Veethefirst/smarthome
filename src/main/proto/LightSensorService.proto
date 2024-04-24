@@ -7,13 +7,18 @@ option java_outer_classname = "LightSensorServiceProto";
 
 service LightControlService {
   rpc StreamTemperature(LightControlRequest) returns (stream LightControlData);
+  rpc ToggleLight(ToggleLightRequest) returns (LightControlData);
 }
 
-message LightControlRequest{
+message LightControlRequest {
   string command = 1;
 }
 
-message  LightControlData {
+message LightControlData {
   bool light_status = 1;
   string time_of_day = 2;
+}
+
+message ToggleLightRequest {
+  bool toggle_on = 1;
 }

@@ -10,7 +10,6 @@ service TemperatureControlService {
 }
 
 message TemperatureRequest{
-  string room_id = 1;
 }
 
 message  TemperatureData {
