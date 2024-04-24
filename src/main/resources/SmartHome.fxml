@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.Controller">
@@ -10,13 +11,20 @@
       <Label layoutX="14.0" layoutY="74.0" text="Temperature: " />
       <Label layoutX="14.0" layoutY="91.0" text="SensorId: " />
       <Label layoutX="16.0" layoutY="108.0" text="Time: " />
-      <Label fx:id="temperatureLabel" layoutX="96.0" layoutY="54.0" />
-      <Label fx:id="sesnorIdLabel" layoutX="96.0" layoutY="71.0" />
-      <Label fx:id="timeLabel" layoutX="96.0" layoutY="88.0" />
+      <Label fx:id="temperatureLabel" layoutX="96.0" layoutY="74.0" />
+      <Label fx:id="sesnorIdLabel" layoutX="95.0" layoutY="91.0" />
+      <Label fx:id="timeLabel" layoutX="96.0" layoutY="108.0" />
       <Label layoutX="14.0" layoutY="21.0" text="Temmperature Sensor">
          <font>
             <Font name="Bodoni MT Black" size="14.0" />
          </font>
       </Label>
+      <Label layoutX="231.0" layoutY="21.0" text="Light Sensor">
+         <font>
+            <Font name="Bodoni MT Black" size="14.0" />
+         </font>
+      </Label>
+      <ToggleButton fx:id="toggleLightButton" layoutX="232.0" layoutY="44.0" mnemonicParsing="false" onAction="#toggleLightAction" text="On" />
+      <Circle fx:id="lightSensorAction" fill="RED" layoutX="247.0" layoutY="99.0" radius="19.0" stroke="BLACK" strokeType="INSIDE" />
    </children>
 </AnchorPane>

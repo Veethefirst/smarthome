@@ -1,6 +1,6 @@
 package controller;
 
-import com.akpan.temperature.TemperatureControlServiceGrpc;
+import com.akpan.light.*;
 import com.akpan.temperature.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -9,6 +9,9 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 
 
 public class Controller {
@@ -18,24 +21,33 @@ public class Controller {
     public Label temperatureLabel;
     public Label sesnorIdLabel;
     public Label timeLabel;
+    public ToggleButton toggleLightButton;
+    public Circle lightSensorAction;
 
-    private ManagedChannel channel;
-    private TemperatureControlServiceGrpc.TemperatureControlServiceStub asyncStub;
+    private ManagedChannel temperatureChannel;
+    private ManagedChannel lightChannel;
+    private TemperatureControlServiceGrpc.TemperatureControlServiceStub temperatureStub;
+    private LightControlServiceGrpc.LightControlServiceStub lightStub;
 
     public void initialize() {
-        // Initialize gRPC channel and stub
-        channel = ManagedChannelBuilder.forAddress("localhost", 3000)
+        //temp channel
+        temperatureChannel = ManagedChannelBuilder.forAddress("localhost", 3000)
                 .usePlaintext()
                 .build();
-        asyncStub = TemperatureControlServiceGrpc.newStub(channel);
+        temperatureStub = TemperatureControlServiceGrpc.newStub(temperatureChannel);
+
+        //light channel
+        lightChannel  = ManagedChannelBuilder.forAddress("localhost", 3001)
+                .usePlaintext()
+                .build();
+        lightStub = LightControlServiceGrpc.newStub(lightChannel);
     }
 
 
     public void startTemperatureServerAction(ActionEvent actionEvent) {
-        System.out.println("HEllo");
         // Stream temperature data and update labels
         TemperatureRequest request = TemperatureRequest.newBuilder().build();
-        asyncStub.streamTemperature(request, new StreamObserver<TemperatureData>() {
+        temperatureStub.streamTemperature(request, new StreamObserver<TemperatureData>() {
             @Override
             public void onNext(TemperatureData temperatureData) {
                 // Update UI on JavaFX application thread
@@ -60,8 +72,41 @@ public class Controller {
 
     public void shutdown() {
         // Shutdown gRPC channel when application exits
-        if (channel != null && !channel.isShutdown()) {
-            channel.shutdown();
+        if (temperatureChannel != null && !temperatureChannel.isShutdown()) {
+            temperatureChannel.shutdown();
         }
+    }
+
+    public void toggleLightAction(ActionEvent actionEvent) {
+        ToggleLightRequest request = ToggleLightRequest.newBuilder()
+                .setToggleOn(toggleLightButton.isSelected())
+                .build();
+
+        lightStub.toggleLight(request, new StreamObserver<LightControlData>() {
+            @Override
+            public void onNext(LightControlData lightControlData) {
+                // Update UI on JavaFX application thread
+                Platform.runLater(() -> {
+
+                    if (lightControlData.getLightStatus()) {
+                       toggleLightButton.setText("OFF");
+                        lightSensorAction.setFill(Color.GREEN);
+                    } else {
+                        toggleLightButton.setText("ON");
+                        lightSensorAction.setFill(Color.RED);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                throwable.printStackTrace();
+            }
+
+            @Override
+            public void onCompleted() {
+                // Handle completion if needed
+            }
+        });
     }
 }

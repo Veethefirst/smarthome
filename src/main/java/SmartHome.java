@@ -1,3 +1,5 @@
+import LightServer.LightServer;
+import TemperatureServer.TemperatureServer;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -16,6 +18,24 @@ public class SmartHome extends Application {
         stage.setTitle("Smart Home");
         stage.setScene(scene);
         stage.show();
+
+        Thread lightServerThread = new Thread(() -> {
+            try {
+                LightServer.main(new String[]{});
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        lightServerThread.start();
+
+        Thread temperatureServerThread = new Thread(() -> {
+            try {
+                TemperatureServer.main(new String[]{});
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        temperatureServerThread.start();
     }
 
     public static void main(String[] args) {
