@@ -1,6 +1,4 @@
 package LightServer;
-
-import TemperatureServer.TemperatureServer;
 import com.akpan.light.*;
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.agent.model.NewService;

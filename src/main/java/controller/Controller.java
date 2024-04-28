@@ -1,6 +1,7 @@
 package controller;
 
 import com.akpan.light.*;
+import com.akpan.motion.*;
 import com.akpan.temperature.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -12,6 +13,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 
 public class Controller {
@@ -23,14 +28,19 @@ public class Controller {
     public Label timeLabel;
     public ToggleButton toggleLightButton;
     public Circle lightSensorAction;
+    public Button motionButton;
+    public Rectangle motionLight;
+    public Label motionLabel;
 
     private ManagedChannel temperatureChannel;
     private ManagedChannel lightChannel;
+    private ManagedChannel motionChannel;
     private TemperatureControlServiceGrpc.TemperatureControlServiceStub temperatureStub;
     private LightControlServiceGrpc.LightControlServiceStub lightStub;
+    private MotionSensorGrpc.MotionSensorStub motionStub;
 
     public void initialize() {
-        //temp channel
+        //temperature channel
         temperatureChannel = ManagedChannelBuilder.forAddress("localhost", 3000)
                 .usePlaintext()
                 .build();
@@ -41,6 +51,12 @@ public class Controller {
                 .usePlaintext()
                 .build();
         lightStub = LightControlServiceGrpc.newStub(lightChannel);
+
+        //motion channel
+        motionChannel  = ManagedChannelBuilder.forAddress("localhost", 3003)
+                .usePlaintext()
+                .build();
+        motionStub = MotionSensorGrpc.newStub(motionChannel);
     }
 
 
@@ -108,5 +124,48 @@ public class Controller {
                 // Handle completion if needed
             }
         });
+    }
+
+    public void motionButtonAction(ActionEvent actionEvent) throws InterruptedException {
+        final CountDownLatch finishLatch = new CountDownLatch(1);
+
+        StreamObserver<MotionRequest> requestObserver = motionStub.streamMotion(new StreamObserver<MotionResponse>() {
+            @Override
+            public void onNext(MotionResponse response) {
+                System.out.println("Alarm is on: " + response.getIsAlarmOn());
+                Platform.runLater(() -> {
+                    if (response.getIsAlarmOn()) {
+                        motionLight.setFill(Color.GREEN);
+                    } else {
+                        motionLight.setFill(Color.RED);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                System.err.println("Error in streaming motion: " + throwable.getMessage());
+                finishLatch.countDown();
+            }
+
+            @Override
+            public void onCompleted() {
+                finishLatch.countDown();
+            }
+        });
+
+        try {
+            // Simulate motion detection
+            for (int i = 0; i < 10; i++) {
+                requestObserver.onNext(MotionRequest.newBuilder().setIsMotionDetected(i % 2 == 0).build());
+                Thread.sleep(1000); // Simulate motion detection event
+            }
+        } catch (RuntimeException | InterruptedException e) {
+            requestObserver.onError(e);
+            throw e;
+        }
+        requestObserver.onCompleted();
+
+        finishLatch.await(1, TimeUnit.MINUTES);
     }
 }
